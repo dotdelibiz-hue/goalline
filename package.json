@@ -1,0 +1,17 @@
+{
+  "name": "goalline",
+  "version": "0.2.0",
+  "description": "ゴールを1文書くだけで、AIが逆算してLINEステップ配信を設計・公開するサービス",
+  "type": "module",
+  "private": true,
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "test": "node --no-warnings --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.4.0",
+    "@netlify/database": "^2.0.3",
+    "pg": "^8.13.0",
+    "zod": "^4.6.7"
+  }
+}

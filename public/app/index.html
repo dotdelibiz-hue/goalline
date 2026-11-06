@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoalLine</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2306c755'/%3E%3Cpath d='M9 17l5 5 9-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root { --bg:#f6f7f5; --card:#fff; --ink:#15171a; --mute:#5f6670; --line:#e5e7e2; --acc:#06c755; --accDeep:#04a245; --warn:#d97706; --bubble:#fff; --chat:#8cabd9; --soft:#eefaf2; --err:#dc2626; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0e1013; --card:#171a1f; --ink:#eceef1; --mute:#a0a7b1; --line:#262b33; --bubble:#232831; --chat:#2b3a52; --soft:#11261a; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.65 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:var(--acc); }
+  header { background:var(--card); border-bottom:1px solid var(--line); }
+  header .in { max-width:680px; margin:0 auto; padding:0 16px; height:56px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .logo { display:flex; align-items:center; gap:8px; font-weight:800; text-decoration:none; color:var(--ink); }
+  .logo i { width:22px; height:22px; border-radius:6px; background:var(--acc); display:inline-grid; place-items:center; }
+  .who { font-size:13px; color:var(--mute); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  main { max-width:680px; margin:0 auto; padding:24px 16px 80px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; margin:0 0 16px; }
+  h2 { font-size:15px; margin:0 0 10px; }
+  .goal { display:flex; gap:8px; }
+  .goal textarea { flex:1; resize:vertical; min-height:56px; }
+  textarea, input { width:100%; font:inherit; color:inherit; background:transparent; border:1px solid var(--line); border-radius:10px; padding:12px; outline:none; }
+  textarea:focus, input:focus { border-color:var(--acc); }
+  button { font:inherit; font-weight:700; border:0; border-radius:10px; padding:0 18px; min-height:44px; background:var(--acc); color:#fff; cursor:pointer; white-space:nowrap; }
+  button:hover { background:var(--accDeep); }
+  button[disabled] { opacity:.55; cursor:wait; }
+  button.big { width:100%; min-height:52px; font-size:16px; }
+  button.ghost { background:transparent; color:var(--mute); border:1px solid var(--line); min-height:36px; padding:0 12px; font-weight:600; font-size:13px; }
+  button.link { background:none; color:var(--mute); padding:0; min-height:auto; font-weight:500; font-size:13px; text-decoration:underline; }
+  .mute { color:var(--mute); font-size:13px; }
+  .chain { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:13px; }
+  .chain span { background:var(--bg); border:1px solid var(--line); border-radius:999px; padding:3px 10px; }
+  .chain b { color:var(--acc); font-weight:700; margin-right:4px; }
+  .chat { background:var(--chat); border-radius:14px; padding:14px 12px; }
+  .when { text-align:center; font-size:12px; color:#fff; margin:12px 0 6px; }
+  .when:first-child { margin-top:0; }
+  .msg { background:var(--bubble); border-radius:16px; padding:10px 14px; max-width:88%; white-space:pre-wrap; outline:none; cursor:text; }
+  .msg:hover { box-shadow:0 0 0 1px var(--acc); }
+  .msg:focus { box-shadow:0 0 0 2px var(--acc); }
+  .tagline { font-size:11px; color:#fff; margin:0 0 3px 4px; }
+  .cta { display:block; background:var(--acc); color:#fff; text-align:center; border-radius:8px; padding:6px; margin-top:8px; font-weight:700; font-size:14px; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; max-width:88%; }
+  .chips span { background:var(--bubble); border:1px solid var(--acc); color:var(--acc); border-radius:999px; padding:2px 10px; font-size:13px; }
+  .menu { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; margin-top:12px; aspect-ratio:2500/843; }
+  .menu div { border:1px solid var(--line); display:flex; align-items:center; justify-content:center; border-radius:6px; background:var(--bubble); font-weight:700; outline:none; text-align:center; }
+  .menu div:first-child { background:var(--acc); color:#fff; }
+  .row { display:grid; grid-template-columns:1fr 2fr; gap:8px; margin-top:12px; }
+  .need { border-color:var(--warn); }
+  .stats { display:grid; grid-template-columns:repeat(4,1fr); text-align:center; }
+  .stats b { display:block; font-size:24px; line-height:1.3; }
+  .err { color:var(--err); font-size:13px; margin-top:8px; min-height:1px; }
+  .hidden { display:none !important; }
+  ol.guide { margin:0 0 14px; padding-left:20px; font-size:14px; }
+  ol.guide li { margin:4px 0; }
+  .copy { display:flex; gap:8px; align-items:center; margin-top:8px; }
+  .copy code { flex:1; font-size:12px; background:var(--bg); border:1px solid var(--line); border-radius:8px; padding:8px 10px; overflow:auto; white-space:nowrap; }
+  .pill { display:inline-block; font-size:12px; font-weight:700; border-radius:999px; padding:2px 10px; background:var(--soft); color:var(--accDeep); }
+  @media (prefers-color-scheme: dark) { .pill { color:var(--acc); } }
+  .source { font-size:12px; color:var(--mute); margin-top:8px; }
+  /* 登録・ログイン */
+  .auth { max-width:400px; margin:48px auto; }
+  .auth h1 { font-size:22px; margin:0 0 6px; }
+  .auth form { display:grid; gap:10px; margin-top:18px; }
+  .auth label { font-size:13px; font-weight:600; }
+  .switch { margin-top:16px; font-size:14px; text-align:center; }
+  footer { max-width:680px; margin:0 auto; padding:0 16px 40px; display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
+  @media (max-width:520px) { .goal { flex-direction:column; } .row { grid-template-columns:1fr; } .stats b { font-size:20px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="in">
+    <a class="logo" href="/"><i><svg width="13" height="13" viewBox="0 0 32 32"><path d="M7 17l6 6 12-14" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></i>GoalLine</a>
+    <span id="who" class="who"></span>
+  </div>
+</header>
+
+<!-- 登録・ログイン -->
+<main id="authView" class="hidden">
+  <div class="card auth">
+    <h1 id="authTitle">無料ではじめる</h1>
+    <div class="mute" id="authSub">メールアドレスとパスワードだけで登録できます。</div>
+    <form id="authForm">
+      <label for="email">メールアドレス</label>
+      <input id="email" type="email" autocomplete="email" required>
+      <label for="password">パスワード（8文字以上）</label>
+      <input id="password" type="password" autocomplete="new-password" minlength="8" required>
+      <button id="authBtn" class="big" type="submit">登録してはじめる</button>
+      <div id="authErr" class="err"></div>
+      <div class="mute" id="agree">登録すると<a href="/legal#terms" target="_blank">利用規約</a>と<a href="/legal#privacy" target="_blank">プライバシーポリシー</a>に同意したものとみなします。</div>
+    </form>
+    <div class="switch" id="authSwitch"></div>
+  </div>
+</main>
+
+<!-- ダッシュボード -->
+<main id="appView" class="hidden">
+  <section id="live" class="card hidden"></section>
+
+  <section class="card">
+    <h2>ゴールを1文で</h2>
+    <div class="goal">
+      <textarea id="goal" placeholder="例: 整体院の初回予約を月30件にしたい https://example.com/reserve"></textarea>
+      <button id="design">設計する</button>
+    </div>
+    <div class="mute" style="margin-top:6px">予約・購入ページのURLも一緒に書くと、そのままゴールのボタンになります。</div>
+    <div id="designErr" class="err"></div>
+  </section>
+
+  <section id="draft" class="hidden">
+    <div class="card">
+      <h2>逆算した設計 <span id="srcPill" class="pill"></span></h2>
+      <div id="chain" class="chain"></div>
+    </div>
+    <div class="card">
+      <h2>配信の下書き <span class="mute" style="font-weight:400">文をクリックすると直せます</span></h2>
+      <div id="chat" class="chat"></div>
+      <div id="menu" class="menu" title="リッチメニュー（クリックで名前を変更）"></div>
+      <div class="row">
+        <input id="ctaLabel" placeholder="ゴールのボタン名">
+        <input id="ctaUrl" placeholder="ゴールのURL（予約・購入ページ）" inputmode="url">
+      </div>
+      <div id="saved" class="source"></div>
+    </div>
+
+    <div id="connect" class="card hidden">
+      <h2>LINE公式アカウントを接続（初回のみ）</h2>
+      <ol class="guide">
+        <li><a href="https://developers.line.biz/console/" target="_blank" rel="noopener">LINE Developers</a> で公式アカウントの Messaging API チャネルを開く</li>
+        <li>「チャネル基本設定」の<b>チャネルシークレット</b>をコピー</li>
+        <li>「Messaging API設定」の<b>チャネルアクセストークン（長期）</b>を発行してコピー</li>
+      </ol>
+      <input id="secret" placeholder="チャネルシークレット" autocomplete="off">
+      <input id="token" placeholder="チャネルアクセストークン（長期）" autocomplete="off" style="margin-top:8px">
+      <div class="mute" style="margin-top:8px">Webhook URL はこちらで自動設定します。</div>
+    </div>
+
+    <button id="publish" class="big">公開する</button>
+    <div id="pubErr" class="err"></div>
+  </section>
+
+  <section id="setup" class="card hidden">
+    <h2>最後に確認（LINE側の設定）</h2>
+    <ol class="guide">
+      <li>Messaging API設定で <b>「Webhookの利用」をオン</b>にする（URLは設定済み）</li>
+      <li><a href="https://manager.line.biz/" target="_blank" rel="noopener">LINE Official Account Manager</a> の応答設定で <b>「応答メッセージ」をオフ</b>にする</li>
+    </ol>
+    <div class="mute">設定済みのWebhook URL</div>
+    <div class="copy"><code id="hookUrl"></code><button class="ghost" data-copy="hookUrl">コピー</button></div>
+    <div class="mute" style="margin-top:14px">任意：予約完了ページに置くと「達成」を自動で記録します（LSID はリンク先URLの <code>lsid</code> の値）</div>
+    <div class="copy"><code id="cvTag"></code><button class="ghost" data-copy="cvTag">コピー</button></div>
+  </section>
+</main>
+
+<footer id="appFoot" class="hidden">
+  <button class="link" id="logout">ログアウト</button>
+  <a class="mute" href="/legal#terms">利用規約</a>
+  <a class="mute" href="/legal#privacy">プライバシー</a>
+  <button class="link" id="deleteAcc">退会する</button>
+</footer>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let S = null;
+
+async function api(method, path, body) {
+  const r = await fetch(path, { method, headers: { 'Content-Type': 'application/json' }, body: body && JSON.stringify(body), credentials: 'same-origin' });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && path !== '/api/login') { showAuth(); throw new Error(j.error || 'ログインしてください'); }
+  if (!r.ok) throw new Error(j.error || `エラー (${r.status})`);
+  return j;
+}
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const when = (s) => s.hour == null ? '友だち追加直後' : `${s.day}日後 ${s.hour}:00`;
+
+// ---------- 登録・ログイン ----------
+let mode = 'signup';
+function showAuth() {
+  mode = location.hash === '#login' ? 'login' : 'signup';
+  $('appView').classList.add('hidden'); $('appFoot').classList.add('hidden'); $('authView').classList.remove('hidden');
+  $('who').textContent = '';
+  const login = mode === 'login';
+  $('authTitle').textContent = login ? 'ログイン' : '無料ではじめる';
+  $('authSub').textContent = login ? 'おかえりなさい。' : 'メールアドレスとパスワードだけで登録できます。';
+  $('authBtn').textContent = login ? 'ログイン' : '登録してはじめる';
+  $('password').autocomplete = login ? 'current-password' : 'new-password';
+  $('agree').classList.toggle('hidden', login);
+  $('authSwitch').innerHTML = login ? 'はじめての方は <a href="#signup">無料で登録</a>' : 'アカウントをお持ちの方は <a href="#login">ログイン</a>';
+  $('authErr').textContent = '';
+}
+window.addEventListener('hashchange', () => { if (!S) showAuth(); });
+$('authForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const b = $('authBtn'); b.disabled = true; $('authErr').textContent = '';
+  try {
+    S = await api('POST', mode === 'login' ? '/api/login' : '/api/signup', { email: $('email').value, password: $('password').value });
+    history.replaceState(null, '', '/app'); showApp();
+  } catch (err) { $('authErr').textContent = err.message; }
+  finally { b.disabled = false; }
+};
+
+// ---------- ダッシュボード ----------
+function showApp() {
+  $('authView').classList.add('hidden'); $('appView').classList.remove('hidden'); $('appFoot').classList.remove('hidden');
+  $('who').textContent = S.email;
+  render();
+}
+
+function render() {
+  const live = S.live;
+  $('live').classList.toggle('hidden', !live);
+  if (live) {
+    const t = live.stats;
+    $('live').innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:12px"><span><span class="pill">配信中</span> <b>${esc(live.plan.title)}</b></span>${S.friendUrl ? `<a href="${esc(S.friendUrl)}" target="_blank" rel="noopener" class="mute">友だち追加リンク ↗</a>` : ''}</div>
+      <div class="stats"><div><b>${t.joins}</b><span class="mute">友だち</span></div><div><b>${t.clicks}</b><span class="mute">クリック</span></div><div><b>${t.goals}</b><span class="mute">達成</span></div><div><b>${t.rate}%</b><span class="mute">達成率</span></div></div>`;
+  }
+  $('setup').classList.toggle('hidden', !live);
+  $('hookUrl').textContent = S.webhookUrl;
+  $('cvTag').textContent = S.cvTag;
+
+  const d = S.draft;
+  $('draft').classList.toggle('hidden', !d);
+  $('connect').classList.toggle('hidden', S.line);
+  if (!d) return;
+  const p = d.plan;
+  $('srcPill').textContent = p.source === 'ai' ? 'AI設計' : 'テンプレート';
+  $('chain').innerHTML = p.chain.map((c) => `<span><b>${esc(c.stage)}</b>${esc(c.state)}</span>`).join('←');
+  const seg = Object.fromEntries(p.segments.map((x) => [x.tag, x.label]));
+  let lastWhen = '';
+  $('chat').innerHTML = p.steps.map((s, i) => {
+    const w = when(s); const head = w !== lastWhen ? `<div class="when">${w}</div>` : ''; lastWhen = w;
+    return `${head}${s.onlyTag ? `<div class="tagline">「${esc(seg[s.onlyTag] || s.onlyTag)}」を選んだ人だけ</div>` : ''}
+      <div class="msg" contenteditable="plaintext-only" data-i="${i}">${esc(s.text)}</div>
+      ${s.cta ? `<div class="msg" style="padding:6px 8px;margin-top:-2px"><span class="cta">${esc(p.cta.label)}</span></div>` : ''}
+      ${s.buttons.length ? `<div class="chips">${s.buttons.map((b) => `<span>${esc(b.label)}</span>`).join('')}</div>` : ''}`;
+  }).join('<div style="height:8px"></div>');
+  $('menu').innerHTML = p.richMenu.map((m, i) => `<div contenteditable="plaintext-only" data-m="${i}">${esc(m.label)}</div>`).join('');
+  $('ctaLabel').value = p.cta.label;
+  $('ctaUrl').value = p.cta.url;
+  $('ctaUrl').classList.toggle('need', !p.cta.url);
+  $('publish').textContent = live ? 'この内容に切り替えて公開する' : '公開する';
+}
+
+let saveTimer;
+async function saveNow() {
+  clearTimeout(saveTimer);
+  if (!S.draft) return;
+  const p = S.draft.plan;
+  document.querySelectorAll('[data-i]').forEach((el) => { p.steps[el.dataset.i].text = el.innerText.trim(); });
+  document.querySelectorAll('[data-m]').forEach((el) => { p.richMenu[el.dataset.m].label = el.innerText.trim(); });
+  p.cta.label = $('ctaLabel').value.trim();
+  p.cta.url = $('ctaUrl').value.trim();
+  $('ctaUrl').classList.toggle('need', !p.cta.url);
+  S = await api('PUT', `/api/draft/${S.draft.id}`, { plan: p });
+  $('saved').textContent = '保存しました';
+}
+const save = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveNow().catch((e) => { $('pubErr').textContent = e.message; }), 300); };
+document.addEventListener('focusout', (e) => { if (e.target.matches('[data-i],[data-m],#ctaLabel,#ctaUrl')) save(); });
+
+function menuPng(menu) {
+  const c = document.createElement('canvas'); c.width = 2500; c.height = 843;
+  const g = c.getContext('2d'); const w = Math.floor(2500 / 3);
+  menu.forEach((m, i) => {
+    g.fillStyle = i === 0 ? '#06c755' : '#ffffff'; g.fillRect(i * w, 0, i === 2 ? 2500 - 2 * w : w, 843);
+    g.fillStyle = i === 0 ? '#ffffff' : '#16181d';
+    g.font = '700 120px "Hiragino Sans","Noto Sans JP",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(m.label, i * w + w / 2, 843 / 2, w - 80);
+  });
+  g.fillStyle = '#e5e7eb'; g.fillRect(2 * w, 0, 4, 843);
+  return c.toDataURL('image/png');
+}
+
+$('design').onclick = async () => {
+  const goal = $('goal').value.trim(); if (!goal) return $('goal').focus();
+  const b = $('design'); b.disabled = true; b.textContent = '設計中…'; $('designErr').textContent = '';
+  try { S = await api('POST', '/api/draft', { goal }); render(); $('draft').scrollIntoView({ behavior: 'smooth' }); }
+  catch (e) { $('designErr').textContent = e.message; }
+  finally { b.disabled = false; b.textContent = '設計する'; }
+};
+
+$('publish').onclick = async () => {
+  const b = $('publish'); b.disabled = true; $('pubErr').textContent = '';
+  try {
+    await saveNow();
+    if (!S.line) S = await api('POST', '/api/line', { secret: $('secret').value, token: $('token').value });
+    S = await api('POST', `/api/publish/${S.draft.id}`, { png: menuPng(S.draft.plan.richMenu) });
+    render(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch (e) { $('pubErr').textContent = e.message; }
+  finally { b.disabled = false; }
+};
+
+document.addEventListener('click', async (e) => {
+  const id = e.target.dataset?.copy; if (!id) return;
+  try { await navigator.clipboard.writeText($(id).textContent); e.target.textContent = 'コピー済み'; setTimeout(() => { e.target.textContent = 'コピー'; }, 1500); } catch {}
+});
+$('logout').onclick = async () => { await api('POST', '/api/logout', {}).catch(() => {}); S = null; location.hash = '#login'; showAuth(); };
+$('deleteAcc').onclick = async () => {
+  if (!confirm('退会すると、シナリオ・友だち・計測データがすべて削除され、配信も止まります。退会しますか？')) return;
+  await api('DELETE', '/api/account').catch((e) => alert(e.message));
+  location.href = '/';
+};
+
+fetch('/api/state', { credentials: 'same-origin' })
+  .then(async (r) => { if (!r.ok) throw 0; S = await r.json(); showApp(); })
+  .catch(() => showAuth());
+</script>
+</body>
+</html>

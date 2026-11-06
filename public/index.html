@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoalLine | ゴールを1文書くだけで、LINEステップ配信が完成</title>
+<meta name="description" content="ゴールを1文書くだけで、AIがゴールから逆算してLINE公式アカウントのステップ配信を設計し、そのまま公開。分岐・計測・ゴール達成後の自動停止まで全部おまかせ。">
+<meta property="og:title" content="GoalLine | ゴールを1文書くだけで、LINEステップ配信が完成">
+<meta property="og:description" content="AIがゴールから逆算して配信を設計。下書きを確認して「公開する」を押すだけ。">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2306c755'/%3E%3Cpath d='M9 17l5 5 9-11' stroke='white' stroke-width='3.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root { --bg:#fbfbf9; --card:#fff; --ink:#15171a; --mute:#5f6670; --line:#e7e7e2; --acc:#06c755; --accDeep:#04a245; --soft:#eefaf2; --chat:#8cabd9; --bubble:#fff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0e1013; --card:#171a1f; --ink:#eceef1; --mute:#a0a7b1; --line:#262b33; --soft:#11261a; --chat:#2b3a52; --bubble:#232831; } }
+  * { box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.75 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif; -webkit-font-smoothing:antialiased; }
+  a { color:inherit; }
+  .wrap { max-width:1040px; margin:0 auto; padding:0 20px; }
+  header { position:sticky; top:0; z-index:5; background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(8px); border-bottom:1px solid var(--line); }
+  header .wrap { display:flex; align-items:center; justify-content:space-between; height:60px; }
+  .logo { display:flex; align-items:center; gap:8px; font-weight:800; letter-spacing:.02em; text-decoration:none; }
+  .logo i { width:24px; height:24px; border-radius:7px; background:var(--acc); display:inline-grid; place-items:center; }
+  .nav { display:flex; gap:8px; align-items:center; }
+  .btn { display:inline-flex; align-items:center; justify-content:center; min-height:44px; padding:0 20px; border-radius:12px; font-weight:700; text-decoration:none; border:1px solid transparent; white-space:nowrap; }
+  .btn.p { background:var(--acc); color:#fff; }
+  .btn.p:hover { background:var(--accDeep); }
+  .btn.g { border-color:var(--line); }
+  .btn.lg { min-height:56px; padding:0 28px; font-size:17px; border-radius:14px; }
+  .hero { padding:72px 0 56px; display:grid; grid-template-columns:1.1fr .9fr; gap:48px; align-items:center; }
+  .eyebrow { display:inline-block; font-size:13px; font-weight:700; color:var(--accDeep); background:var(--soft); border-radius:999px; padding:4px 12px; margin-bottom:18px; }
+  @media (prefers-color-scheme: dark) { .eyebrow { color:var(--acc); } }
+  h1 { font-size:clamp(32px, 5vw, 50px); line-height:1.3; margin:0 0 20px; letter-spacing:-.01em; }
+  h1 em { font-style:normal; color:var(--acc); }
+  .lead { font-size:18px; color:var(--mute); margin:0 0 28px; }
+  .cta-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+  .note { font-size:13px; color:var(--mute); }
+  .phone { background:var(--chat); border-radius:28px; padding:20px 16px; box-shadow:0 30px 60px -30px rgba(0,0,0,.35); max-width:380px; justify-self:center; width:100%; }
+  .goalbox { background:var(--card); color:var(--ink); border-radius:14px; padding:12px 14px; font-size:14px; margin-bottom:14px; border:2px solid var(--acc); }
+  .goalbox b { display:block; font-size:11px; color:var(--acc); letter-spacing:.06em; }
+  .when { text-align:center; font-size:11px; color:#fff; margin:10px 0 4px; }
+  .msg { background:var(--bubble); border-radius:16px; padding:9px 13px; font-size:14px; max-width:90%; margin-bottom:6px; line-height:1.6; }
+  .chips { display:flex; gap:6px; flex-wrap:wrap; margin:2px 0 6px; }
+  .chips span { background:var(--bubble); border:1px solid var(--acc); color:var(--acc); border-radius:999px; padding:1px 10px; font-size:12px; }
+  .ctab { display:block; background:var(--acc); color:#fff; border-radius:8px; text-align:center; font-weight:700; padding:5px; margin-top:6px; font-size:13px; }
+  section { padding:72px 0; }
+  section.alt { background:var(--card); border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+  h2 { font-size:clamp(24px, 3.4vw, 32px); line-height:1.4; margin:0 0 12px; }
+  .sub { color:var(--mute); margin:0 0 40px; }
+  .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; counter-reset:s; }
+  .step { border:1px solid var(--line); border-radius:18px; padding:24px; background:var(--bg); }
+  .step::before { counter-increment:s; content:counter(s); display:grid; place-items:center; width:34px; height:34px; border-radius:50%; background:var(--acc); color:#fff; font-weight:800; margin-bottom:14px; }
+  .step h3 { margin:0 0 6px; font-size:18px; }
+  .step p { margin:0; color:var(--mute); font-size:15px; }
+  .chain { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 40px; }
+  .chain span { border:1px solid var(--line); background:var(--card); border-radius:999px; padding:8px 16px; font-weight:600; }
+  .chain span:first-child { background:var(--acc); color:#fff; border-color:var(--acc); }
+  .chain i { color:var(--mute); font-style:normal; }
+  .feats { display:grid; grid-template-columns:repeat(3,1fr); gap:28px 32px; }
+  .feat h3 { font-size:17px; margin:0 0 6px; display:flex; gap:10px; align-items:center; }
+  .feat h3::before { content:""; width:8px; height:8px; border-radius:2px; background:var(--acc); flex:none; }
+  .feat p { margin:0; color:var(--mute); font-size:15px; }
+  .compare { width:100%; border-collapse:collapse; font-size:15px; }
+  .compare th, .compare td { text-align:left; padding:14px 12px; border-bottom:1px solid var(--line); vertical-align:top; }
+  .compare th { font-size:13px; color:var(--mute); font-weight:600; }
+  .compare td:last-child { font-weight:700; }
+  .price { max-width:460px; margin:0 auto; text-align:center; border:2px solid var(--acc); border-radius:22px; padding:36px 28px; background:var(--bg); }
+  .price .amt { font-size:44px; font-weight:800; line-height:1.2; }
+  .price ul { text-align:left; padding:0; list-style:none; margin:20px 0 28px; }
+  .price li { padding:6px 0 6px 28px; position:relative; }
+  .price li::before { content:"✓"; position:absolute; left:4px; color:var(--acc); font-weight:800; }
+  details { border-bottom:1px solid var(--line); padding:16px 0; }
+  summary { cursor:pointer; font-weight:700; list-style:none; display:flex; justify-content:space-between; gap:12px; }
+  summary::after { content:"+"; color:var(--acc); font-weight:800; }
+  details[open] summary::after { content:"−"; }
+  details p { color:var(--mute); margin:10px 0 0; }
+  .final { text-align:center; }
+  footer { padding:32px 0 48px; color:var(--mute); font-size:13px; border-top:1px solid var(--line); }
+  footer .wrap { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  footer a { text-decoration:none; margin-left:16px; }
+  @media (max-width:860px) {
+    .hero { grid-template-columns:1fr; padding-top:44px; gap:40px; }
+    .steps, .feats { grid-template-columns:1fr; }
+    section { padding:56px 0; }
+    .nav .btn.g { display:none; }
+    .compare th:nth-child(2), .compare td:nth-child(2) { display:none; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <a class="logo" href="/"><i><svg width="14" height="14" viewBox="0 0 32 32"><path d="M7 17l6 6 12-14" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></i>GoalLine</a>
+    <nav class="nav">
+      <a class="btn g" href="/app#login">ログイン</a>
+      <a class="btn p" href="/app#signup">無料ではじめる</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div>
+      <span class="eyebrow">LINE公式アカウント向け・AIステップ配信</span>
+      <h1>ゴールを<em>1文</em>書くだけ。<br>配信はAIが<br>逆算して作る。</h1>
+      <p class="lead">「何を、何通、いつ送るか」を考える必要はありません。下書きを見て、気になる文だけ直して「公開する」。分岐も計測も、ゴール達成後の配信停止も自動です。</p>
+      <div class="cta-row">
+        <a class="btn p lg" href="/app#signup">無料ではじめる</a>
+        <span class="note">メールアドレスだけで登録。クレジットカード不要</span>
+      </div>
+    </div>
+    <div class="phone" aria-label="配信の例">
+      <div class="goalbox"><b>入力したゴール</b>整体院の初回予約を月30件にしたい</div>
+      <div class="when">友だち追加直後</div>
+      <div class="msg">友だち追加ありがとうございます。あなたに合う情報だけ送るため、近いものを1つ選んでください。</div>
+      <div class="chips"><span>腰がつらい</span><span>肩こり</span><span>料金が知りたい</span></div>
+      <div class="when">1日後 20:00</div>
+      <div class="msg">同じ悩みで来院した方の多くが、最初に気にするのは「自分に合うか」です。明日、実際の変化を1つだけ紹介します。</div>
+      <div class="when">3日後 12:00</div>
+      <div class="msg">今週の初回枠は残りわずかです。気になっていた方は今のうちにどうぞ。<span class="ctab">空き枠を見て予約する</span></div>
+    </div>
+  </div>
+
+  <section class="alt" id="how">
+    <div class="wrap">
+      <h2>やることは3つだけ</h2>
+      <p class="sub">設定画面も、シナリオ図も、タグ管理表もありません。</p>
+      <div class="steps">
+        <div class="step"><h3>ゴールを1文で書く</h3><p>「パーソナルジムの体験予約を増やしたい」のように、達成したいことと予約ページのURLを書くだけ。</p></div>
+        <div class="step"><h3>下書きを見て直す</h3><p>LINEの画面そのままの見た目で下書きが出ます。気になる文をクリックして直せば自動保存されます。</p></div>
+        <div class="step"><h3>「公開する」を押す</h3><p>初回だけLINEのキーを2つ貼り付け。Webhook設定もリッチメニューも自動で反映されます。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="why">
+    <div class="wrap">
+      <h2>ゴールから逆向きに設計するから、ムダな配信がない</h2>
+      <p class="sub">AIは「ゴールの直前に読者はどんな気持ちか」を遡って考え、その気持ちを満たす配信だけを時系列に並べます。</p>
+      <div class="chain"><span>予約する</span><i>←</i><span>今動く理由がある</span><i>←</i><span>不安が消えている</span><i>←</i><span>自分ごとだと感じる</span></div>
+      <div class="feats">
+        <div class="feat"><h3>関心で自動分岐</h3><p>1通目のボタンで読者の関心を分け、それぞれに合う配信だけを届けます。</p></div>
+        <div class="feat"><h3>達成したら自動で止まる</h3><p>予約や購入を済ませた人には、以降の配信を送りません。しつこさで嫌われません。</p></div>
+        <div class="feat"><h3>質問にはAIが返信</h3><p>自由に送られたメッセージに、配信内容とゴールを踏まえて短く返信します。</p></div>
+        <div class="feat"><h3>成果は4つの数字だけ</h3><p>友だち・クリック・達成・達成率。見るべき数字以外は出しません。</p></div>
+        <div class="feat"><h3>リッチメニューも自動</h3><p>ゴールへのボタンを含む3分割メニューを画像ごと作って設定します。</p></div>
+        <div class="feat"><h3>無料枠にやさしい</h3><p>1通目は返信として送るので、LINEの無料メッセージ数を消費しません。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt">
+    <div class="wrap">
+      <h2>これまでのステップ配信ツールとの違い</h2>
+      <p class="sub">機能を足すのではなく、人がやる作業を減らすことに全振りしました。</p>
+      <table class="compare">
+        <tr><th>作業</th><th>従来のツール</th><th>GoalLine</th></tr>
+        <tr><td>シナリオ設計</td><td>自分で考えて組み立てる</td><td>ゴール1文からAIが作成</td></tr>
+        <tr><td>文章作成</td><td>1通ずつ書く</td><td>下書き済み。直すだけ</td></tr>
+        <tr><td>分岐・タグ設定</td><td>手作業で条件を組む</td><td>自動</td></tr>
+        <tr><td>達成者の除外</td><td>手作業で設定</td><td>自動で配信停止</td></tr>
+        <tr><td>Webhook・メニュー</td><td>LINE側で個別に設定</td><td>キーを貼るだけで自動</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <section id="price">
+    <div class="wrap">
+      <div class="price">
+        <div class="note">いまはベータ版として提供中</div>
+        <div class="amt">無料</div>
+        <ul>
+          <li>ステップ配信の自動設計と公開</li>
+          <li>関心別の分岐・ゴール達成で自動停止</li>
+          <li>クリック・達成の計測</li>
+          <li>自由入力へのAI返信</li>
+        </ul>
+        <a class="btn p lg" style="width:100%" href="/app#signup">無料ではじめる</a>
+        <p class="note" style="margin:12px 0 0">LINEのメッセージ送信料は、LINE公式アカウントのご契約プランに従います。</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="alt" id="faq">
+    <div class="wrap" style="max-width:760px">
+      <h2>よくある質問</h2>
+      <details><summary>何を用意すればいいですか？</summary><p>LINE公式アカウントと、そのMessaging APIチャネルの「チャネルシークレット」「チャネルアクセストークン（長期）」の2つです。登録後の画面に取得場所へのリンクがあります。</p></details>
+      <details><summary>AIが作った文章はそのまま送られますか？</summary><p>いいえ。公開する前に、LINEと同じ見た目の下書きで全文を確認できます。クリックしてその場で直せます。</p></details>
+      <details><summary>ゴール達成はどうやって判定しますか？</summary><p>配信内のボタン経由のクリックを自動で計測します。予約完了ページに1行のタグを置けば達成も自動記録されます。置けない場合も、読者が「もう済ませた」を押すと配信が止まります。</p></details>
+      <details><summary>今使っている配信ツールと併用できますか？</summary><p>1つのLINE公式アカウントで受け取れるWebhookは1か所のため、同じアカウントでの併用はできません。新しいアカウントや、配信を切り替えるタイミングでお使いください。</p></details>
+      <details><summary>退会はできますか？</summary><p>ダッシュボードからいつでも退会でき、保存したデータはすべて削除されます。</p></details>
+    </div>
+  </section>
+
+  <section class="final">
+    <div class="wrap">
+      <h2>次の配信、ゴールから作りませんか。</h2>
+      <p class="sub">登録から公開まで、早ければ5分です。</p>
+      <a class="btn p lg" href="/app#signup">無料ではじめる</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© GoalLine</span>
+    <span><a href="/legal#terms">利用規約</a><a href="/legal#privacy">プライバシーポリシー</a></span>
+  </div>
+</footer>
+</body>
+</html>
