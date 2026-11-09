@@ -14,7 +14,7 @@ let loaded;
 const loadConfig = () => (loaded ||= (async () => {
   const { rows } = await (await getPool()).query('SELECT key, value FROM config');
   for (const r of rows) process.env[r.key] = r.value;
-})());
+})().catch((e) => { loaded = undefined; throw e; }));
 
 let app;
 
@@ -31,6 +31,13 @@ function cors(req, res) {
 }
 
 Deno.serve(async (req) => {
+  try { return await serve(req); } catch (e) {
+    console.error('[goalline]', e?.stack || e);
+    return cors(req, Response.json({ error: 'サーバーでエラーが起きました。時間をおいてお試しください' }, { status: 500 }));
+  }
+});
+
+async function serve(req) {
   // /functions/v1/goalline/xxx → /xxx
   const u = new URL(req.url);
   const path = u.pathname.replace(/^\/(functions\/v1\/)?goalline/, '') || '/';
@@ -44,8 +51,8 @@ Deno.serve(async (req) => {
   }
 
   app ||= createApp({ db: await getPool(), ai: await getAi(), baseUrl: BASE });
-  const inner = new Request(BASE + path + u.search, req);
+  const inner = new Request(new URL(BASE).origin + path + u.search, req);
   // EdgeRuntime はSupabaseの実行環境が用意する
   const res = await app.handle(inner, { waitUntil: (p) => EdgeRuntime.waitUntil(p) });
   return cors(req, res);
-});
+}
