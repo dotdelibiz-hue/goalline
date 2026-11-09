@@ -204,7 +204,7 @@ $('authForm').onsubmit = async (e) => {
   const b = $('authBtn'); b.disabled = true; $('authErr').textContent = '';
   try {
     S = await api('POST', mode === 'login' ? '/api/login' : '/api/signup', { email: $('email').value, password: $('password').value });
-    history.replaceState(null, '', '/app'); showApp();
+    history.replaceState(null, '', location.pathname); showApp();
   } catch (err) { $('authErr').textContent = err.message; }
   finally { b.disabled = false; }
 };
