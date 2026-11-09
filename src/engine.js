@@ -17,7 +17,7 @@ export function dueAt(joinedAt, step, index) {
 
 export class Engine {
   constructor({ db, accountId, line, baseUrl, ai = null, replyModel }) {
-    Object.assign(this, { db, accountId: Number(accountId), line, baseUrl, ai, replyModel: replyModel || process.env.REPLY_MODEL || 'claude-sonnet-5-5' });
+    Object.assign(this, { db, accountId: Number(accountId), line, baseUrl, ai, replyModel: replyModel || null });
   }
 
   static async forAccount(db, account, { baseUrl, ai = null, line } = {}) {
@@ -151,15 +151,16 @@ export class Engine {
     let answer = { text: 'メッセージありがとうございます。内容を確認してご連絡します。', cta: false };
     if (this.ai) {
       try {
-        const { zodOutputFormat } = await import('@anthropic-ai/sdk/helpers/zod');
-        const res = await this.ai.messages.parse({
-          model: this.replyModel,
-          max_tokens: 1000,
-          output_config: { effort: 'low', format: zodOutputFormat(z.object({ text: z.string(), cta: z.boolean() })) },
+        const out = await this.ai.json({
+          model: this.replyModel || this.ai.models?.reply,
+          maxTokens: 2000, // 推論分を含む上限
+          name: 'reply',
+          schema: z.object({ text: z.string(), cta: z.boolean() }),
           system: `LINE公式アカウントの自動返信。${sc.plan.replyPersona}\nこのアカウントのゴール: ${sc.goal}\nゴール行動: ${sc.plan.cta.label}\n配信内容の要約: ${sc.plan.steps.map((s) => s.text).join(' / ').slice(0, 1500)}\n返信は100文字以内。URLは書かない。ゴール行動を勧めるのが自然なら cta を true にする(リンクはシステムが付ける)。知らない事実は作らない。`,
-          messages: [{ role: 'user', content: text.slice(0, 1000) }],
+          user: text.slice(0, 1000),
+          timeout: 20_000,
         });
-        if (res.stop_reason !== 'refusal' && res.parsed_output?.text) answer = res.parsed_output;
+        if (out?.text) answer = out;
       } catch (err) {
         console.error('[reply] AI返信に失敗:', err.message);
       }

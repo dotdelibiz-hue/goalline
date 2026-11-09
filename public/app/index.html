@@ -73,7 +73,7 @@
 <body>
 <header>
   <div class="in">
-    <a class="logo" href="/"><i><svg width="13" height="13" viewBox="0 0 32 32"><path d="M7 17l6 6 12-14" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></i>GoalLine</a>
+    <a class="logo" href="../"><i><svg width="13" height="13" viewBox="0 0 32 32"><path d="M7 17l6 6 12-14" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></i>GoalLine</a>
     <span id="who" class="who"></span>
   </div>
 </header>
@@ -90,7 +90,7 @@
       <input id="password" type="password" autocomplete="new-password" minlength="8" required>
       <button id="authBtn" class="big" type="submit">登録してはじめる</button>
       <div id="authErr" class="err"></div>
-      <div class="mute" id="agree">登録すると<a href="/legal#terms" target="_blank">利用規約</a>と<a href="/legal#privacy" target="_blank">プライバシーポリシー</a>に同意したものとみなします。</div>
+      <div class="mute" id="agree">登録すると<a href="../legal.html#terms" target="_blank">利用規約</a>と<a href="../legal.html#privacy" target="_blank">プライバシーポリシー</a>に同意したものとみなします。</div>
     </form>
     <div class="switch" id="authSwitch"></div>
   </div>
@@ -157,18 +157,25 @@
 
 <footer id="appFoot" class="hidden">
   <button class="link" id="logout">ログアウト</button>
-  <a class="mute" href="/legal#terms">利用規約</a>
-  <a class="mute" href="/legal#privacy">プライバシー</a>
+  <a class="mute" href="../legal.html#terms">利用規約</a>
+  <a class="mute" href="../legal.html#privacy">プライバシー</a>
   <button class="link" id="deleteAcc">退会する</button>
 </footer>
 
+<script src="../config.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 let S = null;
+// サーバーが別ドメインのときは config.js の GL_API を使い、ログインの鍵はこの端末に保存する
+const API = (window.GL_API || '').replace(/\/$/, '');
+const store = { get: () => { try { return localStorage.getItem('gl_token') || ''; } catch { return ''; } }, set: (v) => { try { v ? localStorage.setItem('gl_token', v) : localStorage.removeItem('gl_token'); } catch {} } };
 
 async function api(method, path, body) {
-  const r = await fetch(path, { method, headers: { 'Content-Type': 'application/json' }, body: body && JSON.stringify(body), credentials: 'same-origin' });
+  const headers = { 'Content-Type': 'application/json' };
+  if (store.get()) headers['x-gl-token'] = store.get();
+  const r = await fetch(API + path, { method, headers, body: body && JSON.stringify(body), credentials: API ? 'omit' : 'same-origin' });
   const j = await r.json().catch(() => ({}));
+  if (j.token) store.set(j.token);
   if (r.status === 401 && path !== '/api/login') { showAuth(); throw new Error(j.error || 'ログインしてください'); }
   if (!r.ok) throw new Error(j.error || `エラー (${r.status})`);
   return j;
@@ -296,15 +303,16 @@ document.addEventListener('click', async (e) => {
   const id = e.target.dataset?.copy; if (!id) return;
   try { await navigator.clipboard.writeText($(id).textContent); e.target.textContent = 'コピー済み'; setTimeout(() => { e.target.textContent = 'コピー'; }, 1500); } catch {}
 });
-$('logout').onclick = async () => { await api('POST', '/api/logout', {}).catch(() => {}); S = null; location.hash = '#login'; showAuth(); };
+$('logout').onclick = async () => { await api('POST', '/api/logout', {}).catch(() => {}); store.set(''); S = null; location.hash = '#login'; showAuth(); };
 $('deleteAcc').onclick = async () => {
   if (!confirm('退会すると、シナリオ・友だち・計測データがすべて削除され、配信も止まります。退会しますか？')) return;
   await api('DELETE', '/api/account').catch((e) => alert(e.message));
-  location.href = '/';
+  store.set('');
+  location.href = '../';
 };
 
-fetch('/api/state', { credentials: 'same-origin' })
-  .then(async (r) => { if (!r.ok) throw 0; S = await r.json(); showApp(); })
+(store.get() || !API ? api('GET', '/api/state') : Promise.reject())
+  .then((j) => { S = j; showApp(); })
   .catch(() => showAuth());
 </script>
 </body>

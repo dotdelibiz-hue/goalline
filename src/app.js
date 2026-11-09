@@ -32,13 +32,16 @@ export function createApp({ db, ai = null, lineFor = (acc) => new Line(unseal(ac
     const t = token();
     await q(db, 'INSERT INTO sessions (id, account_id, expires_at) VALUES ($1, $2, $3)', [sha(t), accountId, Date.now() + SESSION_DAYS * 86400_000]);
     const secure = new URL(req.url).protocol === 'https:' ? '; Secure' : '';
-    return `gl_sid=${t}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_DAYS * 86400}${secure}`;
+    return { t, cookie: `gl_sid=${t}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${SESSION_DAYS * 86400}${secure}` };
   }
 
+  // 画面が別ドメイン(GitHub Pages)のときは x-gl-token ヘッダー、同じドメインなら cookie
+  const sid = (req) => req.headers.get('x-gl-token') || (/(?:^|;\s*)gl_sid=([^;]+)/.exec(req.headers.get('cookie') || '') || [])[1] || '';
+
   async function currentAccount(req) {
-    const m = /(?:^|;\s*)gl_sid=([^;]+)/.exec(req.headers.get('cookie') || '');
-    if (!m) return null;
-    return (await one(db, `SELECT a.* FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.id = $1 AND s.expires_at > $2`, [sha(m[1]), Date.now()])) || null;
+    const t = sid(req);
+    if (!t) return null;
+    return (await one(db, `SELECT a.* FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.id = $1 AND s.expires_at > $2`, [sha(t), Date.now()])) || null;
   }
 
   async function state(acc, req) {
@@ -97,7 +100,8 @@ export function createApp({ db, ai = null, lineFor = (acc) => new Line(unseal(ac
       // 別サイトからの書き込みを拒否
       if (method !== 'GET') {
         const origin = req.headers.get('origin');
-        if (origin && origin !== url.origin && origin !== baseOf(req)) throw new HttpError(403, '不正なリクエスト元です');
+        const allowed = [url.origin, new URL(baseOf(req)).origin, ...String(process.env.ALLOWED_ORIGINS || '').split(',').filter(Boolean)];
+        if (origin && !allowed.includes(origin)) throw new HttpError(403, '不正なリクエスト元です');
       }
 
       // ---------- 登録・ログイン ----------
@@ -106,7 +110,7 @@ export function createApp({ db, ai = null, lineFor = (acc) => new Line(unseal(ac
         const email = String(rawEmail || '').trim().toLowerCase();
         const pw = String(password || '');
         if (!EMAIL_RE.test(email) || email.length > 200) throw new HttpError(400, 'メールアドレスを確認してください');
-        const ip = req.headers.get('x-nf-client-connection-ip') || req.headers.get('x-forwarded-for') || '';
+        const ip = req.headers.get('x-nf-client-connection-ip') || (req.headers.get('x-forwarded-for') || '').split(',')[0].trim();
         await limit(`auth:${email}`, 10, 15 * 60_000);
         if (ip) await limit(`auth-ip:${ip}`, 50, 15 * 60_000);
         let acc;
@@ -118,11 +122,12 @@ export function createApp({ db, ai = null, lineFor = (acc) => new Line(unseal(ac
           acc = await one(db, 'SELECT * FROM accounts WHERE email = $1', [email]);
           if (!acc || !(await checkPassword(pw, acc.pw_hash))) throw new HttpError(401, 'メールアドレスかパスワードが違います');
         }
-        return json(await state(acc, req), 200, { 'Set-Cookie': await startSession(acc.id, req) });
+        const { t, cookie } = await startSession(acc.id, req);
+        return json({ ...(await state(acc, req)), token: t }, 200, { 'Set-Cookie': cookie });
       }
       if (method === 'POST' && path === '/api/logout') {
-        const c = /(?:^|;\s*)gl_sid=([^;]+)/.exec(req.headers.get('cookie') || '');
-        if (c) await q(db, 'DELETE FROM sessions WHERE id = $1', [sha(c[1])]);
+        const t = sid(req);
+        if (t) await q(db, 'DELETE FROM sessions WHERE id = $1', [sha(t)]);
         return json({ ok: true }, 200, { 'Set-Cookie': 'gl_sid=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0' });
       }
 

@@ -1,4 +1,4 @@
-// Postgres接続。本番は Netlify Database、テストは DATABASE_URL の素のPostgres
+// Postgres接続。Supabase は SUPABASE_DB_URL、テストは DATABASE_URL の素のPostgres、Netlify は Netlify Database
 import pg from 'pg';
 
 // BIGINT(ミリ秒)を数値で受け取る
@@ -7,10 +7,15 @@ pg.types.setTypeParser(20, (v) => Number(v));
 let pool;
 export async function getPool() {
   if (pool) return pool;
-  if (process.env.DATABASE_URL) {
-    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 5 });
+  const url = process.env.DATABASE_URL || process.env.SUPABASE_DB_URL;
+  if (url) {
+    pool = new pg.Pool({ connectionString: url, max: 3 });
+    // Supabase では専用スキーマ(DB_SCHEMA=goalline)に閉じ込める
+    const schema = process.env.DB_SCHEMA;
+    if (schema) pool.on('connect', (c) => c.query(`SET search_path TO "${schema.replace(/"/g, '')}"`));
   } else {
-    const { getDatabase } = await import('@netlify/database');
+    const mod = '@netlify/database';
+    const { getDatabase } = await import(mod);
     pool = getDatabase().pool;
   }
   return pool;

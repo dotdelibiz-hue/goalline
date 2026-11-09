@@ -59,20 +59,20 @@ export async function draftPlan(goal, { client, model } = {}) {
   const url = extractUrl(goal);
   if (client) {
     try {
-      const { zodOutputFormat } = await import('@anthropic-ai/sdk/helpers/zod');
-      const res = await client.messages.parse({
-        model: model || process.env.PLANNER_MODEL || 'claude-sonnet-5-5',
-        max_tokens: 16000,
-        thinking: { type: 'adaptive' },
-        output_config: { effort: 'low', format: zodOutputFormat(PlanSchema) },
+      const out = await client.json({
         system: SYSTEM,
-        messages: [{ role: 'user', content: `ゴール: ${goal}` }],
-      }, { timeout: 40_000, maxRetries: 0 }); // サーバーレスの60秒制限内に収める
-      if (res.stop_reason !== 'refusal' && res.parsed_output) {
-        const plan = normalize(res.parsed_output, url);
-        plan.source = 'ai';
-        return plan;
-      }
+        user: `ゴール: ${goal}`,
+        schema: PlanSchema,
+        name: 'plan',
+        model: model || client.models?.plan,
+        maxTokens: 16000,
+        thinking: true,
+        timeout: 40_000, // サーバーレスの60秒制限内に収める
+      });
+      const plan = normalize(out, url);
+      plan.source = 'ai';
+      plan.provider = client.provider;
+      return plan;
     } catch (err) {
       console.error('[planner] AI生成に失敗したためテンプレートで下書きします:', err.message);
     }
